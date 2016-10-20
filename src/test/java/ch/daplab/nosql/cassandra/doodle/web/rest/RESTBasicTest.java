@@ -14,6 +14,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 
+/**
+ * Please start {@link ch.daplab.nosql.cassandra.doodle.PollApp} before launching this test.
+ */
 public class RESTBasicTest {
 
     public static final MediaType JSON
@@ -25,8 +28,11 @@ public class RESTBasicTest {
     public void createPollTest() throws IOException {
         OkHttpClient okHttpClient = new OkHttpClient();
 
+//
+//        Create a new poll
+//
         Poll poll = new Poll();
-        // poll.setId( null ); id is returned by the REST API, not set manually.
+        // poll.setId(null); id is returned by the REST API, not set manually.
         poll.setEmail("email@address.com");
 
         poll.setLabel("Afterwork");
@@ -59,6 +65,10 @@ public class RESTBasicTest {
         Poll receivedPoll = mapper.readValue(response.body().bytes(), Poll.class);
         Assert.assertNotNull(receivedPoll.getId());
 
+
+//
+//        Retrieve the newly created poll
+//
         Request request2 = new Request.Builder()
                 .url(URL + "/" + receivedPoll.getId())
                 .get()
@@ -70,6 +80,9 @@ public class RESTBasicTest {
         Assert.assertEquals(receivedPoll.getId(), receivedPoll2.getId());
 
 
+//
+//        Add a subscriber
+//
         Subscriber s = new Subscriber();
         s.setLabel("Benoit");
         s.setChoices(Arrays.asList("Monday", "Tuesday"));
@@ -81,10 +94,21 @@ public class RESTBasicTest {
                 .put(subcriber)
                 .build();
         Response response3 = okHttpClient.newCall(request3).execute();
-        Assert.assertEquals(201, response.code());
+        Assert.assertEquals(201, response3.code());
         Poll receivedPoll3 = mapper.readValue(response3.body().bytes(), Poll.class);
         Assert.assertEquals(receivedPoll.getId(), receivedPoll3.getId());
         Assert.assertEquals(1, receivedPoll3.getSubscribers().size());
+
+
+//
+//        Delete the poll
+//
+        Request request4 = new Request.Builder()
+                .url(URL + "/" + receivedPoll.getId())
+                .delete()
+                .build();
+        Response response4 = okHttpClient.newCall(request4).execute();
+        Assert.assertEquals(200, response4.code());
 
     }
 
