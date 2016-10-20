@@ -2,9 +2,11 @@ package ch.daplab.nosql.cassandra.doodle.web.rest;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ch.daplab.nosql.cassandra.doodle.domains.Poll;
+import ch.daplab.nosql.cassandra.doodle.domains.Subscriber;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import okhttp3.*;
@@ -62,10 +64,27 @@ public class RESTBasicTest {
                 .get()
                 .build();
         Response response2 = okHttpClient.newCall(request2).execute();
-        Assert.assertEquals(201, response.code());
+        Assert.assertEquals(200, response2.code());
         Poll receivedPoll2 = mapper.readValue(response2.body().bytes(), Poll.class);
 
         Assert.assertEquals(receivedPoll.getId(), receivedPoll2.getId());
+
+
+        Subscriber s = new Subscriber();
+        s.setLabel("Benoit");
+        s.setChoices(Arrays.asList("Monday", "Tuesday"));
+
+        RequestBody subcriber = RequestBody.create(JSON, mapper.writeValueAsString(s));
+
+        Request request3 = new Request.Builder()
+                .url(URL + "/" + receivedPoll.getId())
+                .put(subcriber)
+                .build();
+        Response response3 = okHttpClient.newCall(request3).execute();
+        Assert.assertEquals(201, response.code());
+        Poll receivedPoll3 = mapper.readValue(response3.body().bytes(), Poll.class);
+        Assert.assertEquals(receivedPoll.getId(), receivedPoll3.getId());
+        Assert.assertEquals(1, receivedPoll3.getSubscribers().size());
 
     }
 

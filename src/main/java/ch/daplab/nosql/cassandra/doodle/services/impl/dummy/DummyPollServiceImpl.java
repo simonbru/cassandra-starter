@@ -31,6 +31,9 @@ public class DummyPollServiceImpl implements PollService {
         String uuid = UUID.randomUUID().toString();
 		polls.put(uuid, poll);
         poll.setId(uuid);
+        if (poll.getSubscribers() == null) {
+            poll.setSubscribers(new LinkedList<>());
+        }
 		return poll;
 	}
 

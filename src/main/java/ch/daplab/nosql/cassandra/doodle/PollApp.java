@@ -76,7 +76,7 @@ public class PollApp {
             }
 
             response.status(201);
-            response.header("Location", request.contextPath() + "/rest/polls/" + createdPoll.getId());
+            response.header("Location", "/rest/polls/" + createdPoll.getId());
 
             return mapper.writeValueAsString(createdPoll);
         });
@@ -102,6 +102,9 @@ public class PollApp {
                 String sMessage = "Error creating new poll. [%1$s]";
                 throw new IllegalStateException(String.format(sMessage, e.toString()));
             }
+
+            response.status(201);
+            response.header("Location", "/rest/polls/" + updatedPoll.getId());
 
             return mapper.writeValueAsString(updatedPoll);
 
