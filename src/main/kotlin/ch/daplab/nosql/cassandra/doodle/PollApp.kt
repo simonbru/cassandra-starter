@@ -24,7 +24,8 @@ object PollApp {
 
         // TODO: set your own implementation here
 //        val pollService = DummyPollServiceImpl()
-        val pollService = CassandraPollServiceImpl()
+        val cassandraSession = CassandraConnectionProvider.getLocalhostConnection()
+        val pollService = CassandraPollServiceImpl(cassandraSession)
 
         port(8080)
 
