@@ -1,34 +1,33 @@
-package ch.daplab.nosql.cassandra;
+package ch.daplab.nosql.cassandra
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Session;
-import org.junit.Assert;
+import com.datastax.driver.core.Cluster
+import com.datastax.driver.core.KeyspaceMetadata
+import com.datastax.driver.core.ResultSet
+import com.datastax.driver.core.Session
+import org.junit.Assert
+import java.util.function.Consumer
 
-public class TestCassandra {
+class TestCassandra {
 
     @org.junit.Test
-    public void test1() {
+    fun test1() {
 
-        Cluster.Builder clusterBuilder = new Cluster.Builder().addContactPoint("localhost")
-//                .withPort(9042)
-                .withClusterName("test1");
+        val clusterBuilder = Cluster.Builder().addContactPoint("localhost").withClusterName("test1")//                .withPort(9042)
 
-        Cluster cluster = clusterBuilder.build();
+        val cluster = clusterBuilder.build()
 
-        cluster.getMetadata().getKeyspaces().forEach(System.out::println);
+        cluster.metadata.keyspaces.forEach(::println)
 
 
-        Session session = cluster.connect();                                           // (2)
+        val session = cluster.connect()                                           // (2)
 
-        ResultSet rs = session.execute(
-            "CREATE KEYSPACE doodle WITH REPLICATION = { 'class' : 'org.apache.cassandra.locator.SimpleStrategy', 'replication_factor': '1' }"
-        );
+        val rs = session.execute(
+                "CREATE KEYSPACE doodle WITH REPLICATION = { 'class' : 'org.apache.cassandra.locator.SimpleStrategy', 'replication_factor': '1' }")
 
-        Assert.assertTrue(rs.wasApplied());
+        Assert.assertTrue(rs.wasApplied())
 
 
-/*
+        /*
         CREATE TABLE doodle.tables (
                 keyspace_name text,
                 table_name text,
