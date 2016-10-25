@@ -3,6 +3,7 @@ package ch.daplab.nosql.cassandra.doodle
 import ch.daplab.nosql.cassandra.doodle.domains.Poll
 import ch.daplab.nosql.cassandra.doodle.domains.Subscriber
 import ch.daplab.nosql.cassandra.doodle.services.PollService
+import ch.daplab.nosql.cassandra.doodle.services.impl.cassandra.CassandraPollServiceImpl
 import ch.daplab.nosql.cassandra.doodle.services.impl.dummy.DummyPollServiceImpl
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
@@ -22,7 +23,8 @@ object PollApp {
     @JvmStatic fun main(args: Array<String>) {
 
         // TODO: set your own implementation here
-        val pollService = DummyPollServiceImpl()
+//        val pollService = DummyPollServiceImpl()
+        val pollService = CassandraPollServiceImpl()
 
         port(8080)
 
