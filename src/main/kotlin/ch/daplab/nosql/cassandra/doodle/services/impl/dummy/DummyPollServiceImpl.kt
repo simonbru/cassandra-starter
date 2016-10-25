@@ -33,7 +33,7 @@ class DummyPollServiceImpl : PollService {
 
     override fun addSubscriber(pollId: String, subscriber: Subscriber): Poll {
         val poll = polls[pollId]
-        poll!!.subscribers!!    .add(subscriber)
+        poll!!.subscribers!!.add(subscriber)
         return poll
     }
 
