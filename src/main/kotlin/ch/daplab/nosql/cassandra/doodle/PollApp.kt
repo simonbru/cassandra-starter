@@ -35,24 +35,27 @@ object PollApp {
 
             val pollId = request.params(":pollId")
 
-            var poll: Poll? = null
-
             /* validate poll Id parameter */
             if (isEmpty(pollId) || pollId.length < 5) {
                 val sMessage = "Error invoking getPoll - Invalid poll Id parameter"
                 throw IllegalStateException(sMessage)
             }
 
+            val poll: Poll?
             try {
                 poll = pollService.getPollById(pollId)
             } catch (e: Exception) {
-                val sMessage = "Error invoking getPoll. [%1\$s]"
-                throw IllegalStateException(String.format(sMessage, e.toString()))
+                throw IllegalStateException("Error invoking getPoll. [$e]")
             }
 
-            logger.debug("Returing Poll: " + poll!!.toString())
+            logger.debug("Returning Poll: " + poll?.toString())
 
-            mapper.writeValueAsBytes(poll)
+            if (poll == null) {
+                response.status(404)
+                ""
+            } else {
+                mapper.writeValueAsBytes(poll)
+            }
         }
 
 
