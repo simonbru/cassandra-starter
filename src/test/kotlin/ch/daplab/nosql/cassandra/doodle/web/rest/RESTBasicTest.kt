@@ -4,8 +4,8 @@ import java.io.IOException
 import java.util.ArrayList
 import java.util.Arrays
 
-import ch.daplab.nosql.cassandra.doodle.domains.Poll
-import ch.daplab.nosql.cassandra.doodle.domains.Subscriber
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataPoll
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataSubscriber
 import com.fasterxml.jackson.databind.ObjectMapper
 
 import okhttp3.*
@@ -20,7 +20,7 @@ class RESTBasicTest {
     fun createPollTest() {
         val okHttpClient = OkHttpClient()
 
-        val poll = Poll()
+        val poll = DataPoll()
         // poll.setId( null ); id is returned by the REST API, not set manually.
         poll.email = "email@address.com"
 
@@ -50,18 +50,18 @@ class RESTBasicTest {
         Assert.assertNotNull(response.header("Location"))
         println(response.header("Location"))
 
-        val receivedPoll = mapper.readValue(response.body().bytes(), Poll::class.java)
+        val receivedPoll = mapper.readValue(response.body().bytes(), DataPoll::class.java)
         Assert.assertNotNull(receivedPoll.id)
 
         val request2 = Request.Builder().url(URL + "/" + receivedPoll.id).get().build()
         val response2 = okHttpClient.newCall(request2).execute()
         Assert.assertEquals(200, response2.code().toLong())
-        val receivedPoll2 = mapper.readValue(response2.body().bytes(), Poll::class.java)
+        val receivedPoll2 = mapper.readValue(response2.body().bytes(), DataPoll::class.java)
 
         Assert.assertEquals(receivedPoll.id, receivedPoll2.id)
 
 
-        val s = Subscriber()
+        val s = DataSubscriber()
         s.label = "Benoit"
         s.choices = Arrays.asList("Monday", "Tuesday")
 
@@ -70,7 +70,7 @@ class RESTBasicTest {
         val request3 = Request.Builder().url(URL + "/" + receivedPoll.id).put(subcriber).build()
         val response3 = okHttpClient.newCall(request3).execute()
         Assert.assertEquals(201, response.code().toLong())
-        val receivedPoll3 = mapper.readValue(response3.body().bytes(), Poll::class.java)
+        val receivedPoll3 = mapper.readValue(response3.body().bytes(), DataPoll::class.java)
         Assert.assertEquals(receivedPoll.id, receivedPoll3.id)
         Assert.assertEquals(1, receivedPoll3.subscribers!!.size.toLong())
 

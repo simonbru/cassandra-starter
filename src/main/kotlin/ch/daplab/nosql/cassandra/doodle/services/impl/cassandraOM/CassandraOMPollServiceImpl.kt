@@ -1,7 +1,8 @@
 package ch.daplab.nosql.cassandra.doodle.services.impl.cassandraOM
 
 import ch.daplab.nosql.cassandra.doodle.domains.Poll
-import ch.daplab.nosql.cassandra.doodle.domains.Subscriber
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataPoll
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataSubscriber
 import ch.daplab.nosql.cassandra.doodle.services.PollService
 import ch.daplab.nosql.cassandra.doodle.services.impl.cassandra.CassandraPollServiceImpl
 import com.datastax.driver.core.Session
@@ -39,10 +40,10 @@ class CassandraOMPollServiceImpl(val session: Session, autoCreateSchema: Boolean
     }
 
     override fun getPollById(pollId: String): Poll? {
-        return pollMapper.get(pollId.toUUID())?.toPoll()
+        return pollMapper.get(pollId.toUUID())
     }
 
-    override fun createPoll(poll: Poll): Poll {
+    override fun createPoll(poll: Poll): PollModel {
         val model = PollModel().apply {
             id = UUID.randomUUID()
             label = poll.label
@@ -54,10 +55,10 @@ class CassandraOMPollServiceImpl(val session: Session, autoCreateSchema: Boolean
         return getPollById(model.id.toString())!!
     }
 
-    override fun addSubscriber(pollId: String, subscriber: Subscriber): Poll {
+    override fun addSubscriber(pollId: String, dataSubscriber: DataSubscriber): DataPoll {
         val sub = SubscriberModel().apply {
-            label = subscriber.label
-            choices = subscriber.choices ?: emptyList()
+            label = dataSubscriber.label
+            choices = dataSubscriber.choices ?: emptyList()
         }
         pollAccessor.addSubscriber(pollId.toUUID(), listOf(sub))
         return getPollById(pollId)!!
@@ -68,7 +69,7 @@ class CassandraOMPollServiceImpl(val session: Session, autoCreateSchema: Boolean
         pollMapper.delete(model)
     }
 
-    override val allPolls: List<Poll>
+    override val allDataPolls: List<DataPoll>
         get() = pollAccessor.getAll().map { it.toPoll() }
 
 

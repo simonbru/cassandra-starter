@@ -1,15 +1,11 @@
 package ch.daplab.nosql.cassandra.doodle
 
-import ch.daplab.nosql.cassandra.doodle.domains.Poll
-import ch.daplab.nosql.cassandra.doodle.domains.Subscriber
-import ch.daplab.nosql.cassandra.doodle.services.PollService
-import ch.daplab.nosql.cassandra.doodle.services.impl.cassandra.CassandraPollServiceImpl
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataPoll
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataSubscriber
 import ch.daplab.nosql.cassandra.doodle.services.impl.cassandraOM.CassandraOMPollServiceImpl
-import ch.daplab.nosql.cassandra.doodle.services.impl.dummy.DummyPollServiceImpl
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.slf4j.Logger
+import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import org.slf4j.LoggerFactory
-
 import spark.Spark.*
 
 /**
@@ -17,7 +13,7 @@ import spark.Spark.*
  */
 object PollApp {
 
-    private val logger = LoggerFactory.getLogger(PollApp::class.java!!)
+    private val logger = LoggerFactory.getLogger(PollApp::class.java)
 
     private val mapper = ObjectMapper()
 
@@ -35,57 +31,53 @@ object PollApp {
 
             val pollId = request.params(":pollId")
 
-            /* validate poll Id parameter */
+            /* validate dataPoll Id parameter */
             if (isEmpty(pollId) || pollId.length < 5) {
-                val sMessage = "Error invoking getPoll - Invalid poll Id parameter"
+                val sMessage = "Error invoking getPoll - Invalid dataPoll Id parameter"
                 throw IllegalStateException(sMessage)
             }
 
-            val poll: Poll?
+            val dataPoll: DataPoll?
             try {
-                poll = pollService.getPollById(pollId)
+                dataPoll = pollService.getPollById(pollId)
             } catch (e: Exception) {
                 throw IllegalStateException("Error invoking getPoll. [$e]")
             }
 
-            logger.debug("Returning Poll: " + poll?.toString())
+            logger.debug("Returning DataPoll: " + dataPoll?.toString())
 
-            if (poll == null) {
+            if (dataPoll == null) {
                 response.status(404)
                 ""
             } else {
-                mapper.writeValueAsBytes(poll)
+                mapper.writeValueAsBytes(dataPoll)
             }
         }
 
 
         get("/rest/polls") { request, response ->
-
             try {
-                val polls = pollService.allPolls
+                val polls = pollService.allDataPolls
                 return@get mapper.writeValueAsBytes(polls)
             } catch (e: Exception) {
-                val sMessage = "Error invoking getPolls. [%1\$s]"
-                throw IllegalStateException(String.format(sMessage, e.toString()))
+                throw IllegalStateException("Error invoking getPolls. [$e]")
             }
         }
 
         post("/rest/polls") { request, response ->
 
-            var createdPoll: Poll
-
+            val createdDataPoll: DataPoll
             try {
-                createdPoll = mapper.readValue<Poll>(request.bodyAsBytes(), Poll::class.java!!)
-                createdPoll = pollService.createPoll(createdPoll)
+                val receivedPoll = mapper.readValue<DataPoll>(request.bodyAsBytes(), DataPoll::class.java)
+                createdDataPoll = pollService.createPoll(receivedPoll)
             } catch (e: Exception) {
-                val sMessage = "Error creating new poll. [%1\$s]"
-                throw IllegalStateException(String.format(sMessage, e.toString()))
+                throw IllegalStateException("Error creating new poll. [$e]")
             }
 
             response.status(201)
-            response.header("Location", "/rest/polls/" + createdPoll.id)
+            response.header("Location", "/rest/polls/" + createdDataPoll.id)
 
-            mapper.writeValueAsString(createdPoll)
+            mapper.writeValueAsString(createdDataPoll)
         }
 
         put("/rest/polls/:pollId") { request, response ->
@@ -98,23 +90,19 @@ object PollApp {
                 throw IllegalStateException(sMessage)
             }
 
-            val createdSubscriber: Subscriber
-            val updatedPoll: Poll
-
+            val updatedDataPoll: DataPoll
             try {
-                createdSubscriber = mapper.readValue<Subscriber>(request.bodyAsBytes(), Subscriber::class.java!!)
+                val createdSubscriber = mapper.readValue<DataSubscriber>(request.bodyAsBytes(), DataSubscriber::class.java)
 
-                updatedPoll = pollService.addSubscriber(pollId, createdSubscriber)
+                updatedDataPoll = pollService.addSubscriber(pollId, createdSubscriber)
             } catch (e: Exception) {
-                val sMessage = "Error creating new poll. [%1\$s]"
-                throw IllegalStateException(String.format(sMessage, e.toString()))
+                throw IllegalStateException("Error creating new poll. [$e]")
             }
 
             response.status(201)
-            response.header("Location", "/rest/polls/" + updatedPoll.id)
+            response.header("Location", "/rest/polls/" + updatedDataPoll.id)
 
-            mapper.writeValueAsString(updatedPoll)
-
+            mapper.writeValueAsString(updatedDataPoll)
         }
 
         delete("/rest/polls/:pollId") { request, response ->
@@ -130,8 +118,7 @@ object PollApp {
             try {
                 pollService.deletePoll(pollId)
             } catch (e: Exception) {
-                val sMessage = "Error invoking getPoll. [%1\$s]"
-                throw IllegalStateException(String.format(sMessage, e.toString()))
+                throw IllegalStateException("Error invoking getPoll. [$e]")
             }
 
             "ok"
@@ -139,14 +126,16 @@ object PollApp {
 
         exception(Exception::class.java) { exception, request, response ->
             logger.error("Got an exception", exception)
-            response.body("{\"error\": \"" + exception.message + "\"}")
+            val jsonBody = JsonNodeFactory.instance
+                    .objectNode().put("error", exception.message).toString()
+            response.body(jsonBody)
             response.status(500)
         }
 
     }
 
     fun isEmpty(s_p: String?): Boolean {
-        return null == s_p || s_p.trim { it <= ' ' }.length == 0
+        return null == s_p || s_p.trim().length == 0
     }
 
 }

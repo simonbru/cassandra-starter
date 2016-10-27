@@ -1,34 +1,36 @@
 package ch.daplab.nosql.cassandra.doodle.services.impl.cassandraOM
 
 import ch.daplab.nosql.cassandra.doodle.domains.Poll
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataPoll
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataSubscriber
 import ch.daplab.nosql.cassandra.doodle.domains.Subscriber
 import com.datastax.driver.mapping.annotations.Column
 import com.datastax.driver.mapping.annotations.FrozenValue
 import com.datastax.driver.mapping.annotations.PartitionKey
 import com.datastax.driver.mapping.annotations.Table
+import com.datastax.driver.mapping.annotations.Transient
 import java.util.*
 
-/**
- * Created by simon on 26.10.16.
- */
+
 @Table(keyspace = "doodle", name = "polls")
-class PollModel {
+class PollModel : Poll<SubscriberModel> {
 
     @PartitionKey
-    var id: UUID? = null
+    @Column(name = "id")
+    var realId: UUID? = null
 
-    var label: String? = null
-    var choices: List<String> = emptyList()
-    var email: String? = null
-    var maxChoices: Int? = null
+    @get:Transient
+    override var id: String?
+        get() = realId.toString()
+        set(strId) {
+            realId = UUID.fromString(strId)
+        }
+
+    override var label: String? = null
+    override var choices: List<String> = emptyList()
+    override var email: String? = null
+    override var maxChoices: Int? = null
 
     @FrozenValue
-    var subscribers: List<SubscriberModel> = emptyList()
-
-    fun toPoll(): Poll {
-        val subs = subscribers.map { it.toSubscriber() }.toMutableList()
-        return Poll(
-                id.toString(), label, choices, email, maxChoices, subs
-        )
-    }
+    override var subscribers: MutableList<SubscriberModel>? = mutableListOf()
 }

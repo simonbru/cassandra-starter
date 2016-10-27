@@ -1,7 +1,7 @@
 package ch.daplab.nosql.cassandra.doodle.services.impl.cassandra
 
-import ch.daplab.nosql.cassandra.doodle.domains.Poll
-import ch.daplab.nosql.cassandra.doodle.domains.Subscriber
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataPoll
+import ch.daplab.nosql.cassandra.doodle.domains.impl.DataSubscriber
 import ch.daplab.nosql.cassandra.doodle.services.PollService
 import com.datastax.driver.core.Row
 import com.datastax.driver.core.Session
@@ -17,7 +17,7 @@ class CassandraPollServiceImpl(val session: Session, autoCreateSchema: Boolean =
         subscriberUDT = session.cluster.metadata.getKeyspace("doodle").getUserType("subscriber")
     }
 
-    override fun getPollById(pollId: String): Poll? {
+    override fun getPollById(pollId: String): DataPoll? {
         val row = session.execute("SELECT * FROM doodle.polls WHERE id = ?", pollId.toUUID()).one()
         return when (row) {
             null -> null
@@ -25,19 +25,19 @@ class CassandraPollServiceImpl(val session: Session, autoCreateSchema: Boolean =
         }
     }
 
-    override fun createPoll(poll: Poll): Poll {
+    override fun createPoll(dataPoll: DataPoll): DataPoll {
         val uuid = UUID.randomUUID()
         session.execute(
                 "INSERT INTO doodle.polls (id, label, choices, email, maxChoices) VALUES (?,?,?,?,?)",
-                uuid, poll.label, poll.choices, poll.email, poll.maxChoices
+                uuid, dataPoll.label, dataPoll.choices, dataPoll.email, dataPoll.maxChoices
         )
         return getPollById(uuid.toString())!!
     }
 
-    override fun addSubscriber(pollId: String, subscriber: Subscriber): Poll {
+    override fun addSubscriber(pollId: String, dataSubscriber: DataSubscriber): DataPoll {
         val udtValue = subscriberUDT.newValue().apply {
-            setString("label", subscriber.label)
-            setList("choices", subscriber.choices)
+            setString("label", dataSubscriber.label)
+            setList("choices", dataSubscriber.choices)
         }
         session.execute(
                 "UPDATE doodle.polls SET subscribers = subscribers + ? WHERE id = ?",
@@ -50,7 +50,7 @@ class CassandraPollServiceImpl(val session: Session, autoCreateSchema: Boolean =
         session.execute("DELETE FROM doodle.polls WHERE id = ?", pollId.toUUID())
     }
 
-    override val allPolls: List<Poll>
+    override val allDataPolls: List<DataPoll>
         get() = session.execute("SELECT * FROM doodle.polls").map(::rowToPoll)
 
     fun createSchema() {
@@ -83,15 +83,15 @@ class CassandraPollServiceImpl(val session: Session, autoCreateSchema: Boolean =
 
 private fun String.toUUID() = UUID.fromString(this)
 
-internal fun rowToPoll(row: Row): Poll {
-    return Poll().apply {
+internal fun rowToPoll(row: Row): DataPoll {
+    return DataPoll().apply {
         id = row.getUUID("id").toString()
         label = row.getString("label")
         choices = row.getList("choices", String::class.java)
         email = row.getString("email")
         maxChoices = row.getInt("maxChoices")
         subscribers = row.getList("subscribers", UDTValue::class.java).map {
-            Subscriber(
+            DataSubscriber(
                     label = it.getString("label"),
                     choices = it.getList("choices", String::class.java)
             )
