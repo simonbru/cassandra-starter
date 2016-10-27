@@ -6,7 +6,7 @@ class Poll(
     var choices: List<String> = emptyList(),
     var email: String? = null,
     var maxChoices: Int? = null,
-    var subscribers: MutableList<Subscriber>? = null
+    var subscribers: MutableList<Subscriber> = mutableListOf()
 ) {
     override fun toString(): String {
         return "Poll [id=$id, label=$label, " +

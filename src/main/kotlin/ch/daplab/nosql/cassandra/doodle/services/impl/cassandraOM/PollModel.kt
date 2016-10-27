@@ -1,16 +1,12 @@
 package ch.daplab.nosql.cassandra.doodle.services.impl.cassandraOM
 
 import ch.daplab.nosql.cassandra.doodle.domains.Poll
-import ch.daplab.nosql.cassandra.doodle.domains.Subscriber
-import com.datastax.driver.mapping.annotations.Column
 import com.datastax.driver.mapping.annotations.FrozenValue
 import com.datastax.driver.mapping.annotations.PartitionKey
 import com.datastax.driver.mapping.annotations.Table
 import java.util.*
 
-/**
- * Created by simon on 26.10.16.
- */
+
 @Table(keyspace = "doodle", name = "polls")
 class PollModel {
 

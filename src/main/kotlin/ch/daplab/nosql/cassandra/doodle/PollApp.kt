@@ -2,7 +2,9 @@ package ch.daplab.nosql.cassandra.doodle
 
 import ch.daplab.nosql.cassandra.doodle.domains.Poll
 import ch.daplab.nosql.cassandra.doodle.domains.Subscriber
+import ch.daplab.nosql.cassandra.doodle.services.impl.CassandraHelpers
 import ch.daplab.nosql.cassandra.doodle.services.impl.cassandraOM.CassandraOMPollServiceImpl
+import ch.daplab.nosql.cassandra.doodle.services.impl.dummy.DummyPollServiceImpl
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import org.slf4j.LoggerFactory
@@ -21,7 +23,7 @@ object PollApp {
 
         // TODO: set your own implementation here
 //        val pollService = DummyPollServiceImpl()
-        val cassandraSession = CassandraConnectionProvider.getLocalhostConnection()
+        val cassandraSession = CassandraHelpers.getLocalhostConnection()
 //        val pollService = CassandraPollServiceImpl(cassandraSession)
         val pollService = CassandraOMPollServiceImpl(cassandraSession)
 
